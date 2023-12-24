@@ -1,0 +1,22 @@
+{
+  "name": "discord-mirror",
+  "version": "1.0.0",
+  "workspaces": ["bot","common"],
+  "author": "Elliott de Launay",
+  "license": "ISC",
+  "private": true,
+  "scripts": {
+    "test": "jest"
+  },
+  "devDependencies": {
+    "@babel/preset-typescript": "^7.23.3",
+    "@types/jest": "^29.5.11",
+    "@types/node": "20.8.2",
+    "gts": "^5.2.0",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.1",
+    "ts-node": "^10.9.2",
+    "typescript": ">=3.3.1 <5.2.0"
+  },
+  "files": ["jest"]
+}

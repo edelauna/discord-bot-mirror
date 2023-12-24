@@ -1,0 +1,21 @@
+{
+  "name": "discord-mirror-common",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "test": "jest",
+    "lint": "gts lint",
+    "clean": "gts clean",
+    "compile": "tsc",
+    "fix": "gts fix",
+    "prepare": "npm run compile",
+    "pretest": "npm run compile",
+    "posttest": "npm run lint"
+  },
+  "devDependencies": {
+    "msw": "^2.0.11"
+  },
+  "files": [
+    "msw"
+  ]
+}

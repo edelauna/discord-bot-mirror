@@ -1,0 +1,34 @@
+{
+  "name": "discord-mirror-bot",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "dev": "wrangler dev src/app.ts",
+    "start": "wrangler dev src/app.ts",
+    "test": "jest",
+    "lint": "gts lint",
+    "clean": "gts clean",
+    "compile": "tsc",
+    "fix": "gts fix",
+    "prepare": "npm run compile",
+    "pretest": "npm run compile",
+    "posttest": "npm run lint",
+    "publish": "wrangler deploy",
+    "register": "ts-node bin/deploy-commands.ts"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20231218.0",
+    "dotenv": "^16.3.1",
+    "wrangler": "^3.0.0"
+  },
+  "files": [
+    "wrangler"
+  ],
+  "dependencies": {
+    "discord-api-types": "^0.37.66",
+    "discord-interactions": "^3.4.0",
+    "discord-mirror-common": "../common",
+    "itty-router": "^4.0.23"
+  }
+}
