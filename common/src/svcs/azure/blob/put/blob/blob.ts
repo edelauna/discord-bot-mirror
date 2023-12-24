@@ -18,6 +18,6 @@ export const putBlob = async function (
     },
     body: data,
   })
-    .then(r => r.text())
+    .then(r => r.status)
     .catch(e => logError('svcs:azure:blob:putBlob:error', e));
 };

@@ -2,7 +2,7 @@ import {
   authHeaders,
   refreshToken,
   setToken,
-} from '../../svcs/azure/blob/token/token';
+} from '../../svcs/azure/token/token';
 import {getBlob} from '../../svcs/azure/blob/get';
 import {
   leaseBlob,

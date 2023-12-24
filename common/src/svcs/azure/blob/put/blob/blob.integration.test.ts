@@ -1,27 +1,22 @@
 import {AzureBlobClient} from '../../../../../clients/azure/blob';
-import {RequestMethods, request} from '../../../../../clients/https/https';
-import type {IncomingMessage} from 'node:http';
-import {BLOB_TYPE, putBlob} from './blob';
-
-jest.mock('../../../../../clients/https/https', () => ({
-  ...jest.requireActual('../../../../../clients/https/https'),
-  request: jest.fn(),
-}));
+import {putBlob} from './blob';
+import {mswServerSetup} from '../../../../../utils/msw';
+import {handlers as authHandlers} from '../../../token/mocks/handlers';
+import {errorHandler, okHandler} from './mocks/handlers';
 
 describe('putBlob', () => {
   let azureBlobClient: AzureBlobClient;
-  const mockRequest = request as jest.MockedFunction<typeof request>;
-
-  const setupAuthMock = () => {
-    return mockRequest.mockResolvedValueOnce({
-      body: '{"access_token": "your-access-token", "expires_in": 3600}',
-      response: {} as IncomingMessage,
-    });
-  };
+  const MOCK_AZURE_TENANT_ID = 'tenantId';
+  const MOCK_AZURE_HOST = 'http://test';
+  const MOCK_APP = 'test';
+  const mswServer = mswServerSetup(
+    authHandlers({tenantId: MOCK_AZURE_TENANT_ID})
+  );
 
   beforeEach(() => {
-    azureBlobClient = new AzureBlobClient('your-app');
-    mockRequest.mockClear();
+    azureBlobClient = new AzureBlobClient(MOCK_APP);
+    azureBlobClient.azureTenantId = MOCK_AZURE_TENANT_ID;
+    azureBlobClient.host = MOCK_AZURE_HOST;
   });
 
   it('should put blob successfully', async () => {
@@ -29,47 +24,41 @@ describe('putBlob', () => {
     const mockData = 'your-blob-data';
 
     const mockStatusCode = 201;
-    const mockResponse = {statusCode: mockStatusCode} as IncomingMessage;
-
-    setupAuthMock().mockResolvedValueOnce({response: mockResponse});
+    mswServer.use(
+      okHandler(
+        {host: MOCK_AZURE_HOST, app: MOCK_APP, resource: mockResource},
+        mockData
+      )
+    );
 
     const statusCode = await putBlob.call(
       azureBlobClient,
       mockResource,
       mockData
     );
-
-    expect(mockRequest).toHaveBeenCalledWith({
-      ...azureBlobClient.optsTemplate,
-      path: `/${azureBlobClient.app}/${mockResource}`,
-      method: RequestMethods.PUT,
-      headers: {
-        ...(await azureBlobClient.authHeaders()),
-        'Content-Type': 'text/plain',
-        'Content-Length': Buffer.byteLength(mockData),
-        'x-ms-blob-type': BLOB_TYPE,
-      },
-      data: mockData,
-    });
     expect(statusCode).toBe(mockStatusCode);
   });
 
   it('should log error on failure', async () => {
     const mockResource = 'your-resource';
-    const mockData = 'your-blob-data';
-    const mockError = new Error('Request failed');
 
     const mockLogError = jest
       .spyOn(console, 'error')
       .mockImplementation(() => {});
     const expectedErrorMessage = 'svcs:azure:blob:putBlob:error';
 
-    setupAuthMock().mockRejectedValueOnce(mockError);
+    mswServer.use(
+      errorHandler({
+        host: MOCK_AZURE_HOST,
+        app: MOCK_APP,
+        resource: mockResource,
+      })
+    );
 
-    await putBlob.call(azureBlobClient, mockResource, mockData);
+    await putBlob.call(azureBlobClient, mockResource, '');
 
     expect(mockLogError).toHaveBeenCalledTimes(2);
     expect(mockLogError).toHaveBeenNthCalledWith(1, expectedErrorMessage);
-    expect(mockLogError).toHaveBeenLastCalledWith(mockError);
+    expect(mockLogError).toHaveBeenLastCalledWith(expect.any(Error));
   });
 });

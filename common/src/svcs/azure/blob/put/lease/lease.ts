@@ -1,5 +1,5 @@
 import {AzureBlobClient} from '../../../../../clients/azure/blob';
-import {RequestMethods, request} from '../../../../../clients/https/https';
+import {RequestMethods} from '../../../../../utils/fetch';
 import {logError} from '../../../../../utils/log/error';
 
 export enum LeaseStatus {
@@ -10,7 +10,7 @@ export enum LeaseStatus {
 export type AzureBlobLease = {
   found: boolean;
   status: LeaseStatus;
-  leaseId?: string;
+  leaseId?: string | null;
 };
 
 /**
@@ -29,9 +29,7 @@ export const leaseBlob = async function (
   this: AzureBlobClient,
   resource: string
 ): Promise<AzureBlobLease | void> {
-  return request({
-    ...this.optsTemplate,
-    path: `/${this.app}/${resource}?comp=lease`,
+  return fetch(`${this.host}/${this.app}/${resource}?comp=lease`, {
     method: RequestMethods.PUT,
     headers: {
       ...(await this.authHeaders()),
@@ -39,13 +37,13 @@ export const leaseBlob = async function (
       'x-ms-lease-duration': LEASE_DURATION,
     },
   })
-    .then(({body, response}) => {
-      switch (response.statusCode) {
+    .then(async r => {
+      switch (r.status) {
         case 201:
           return {
             found: true,
             status: LeaseStatus.ACQUIRED,
-            leaseId: response.headers['x-ms-lease-id'] as string,
+            leaseId: r.headers.get('x-ms-lease-id'),
           };
         case 404:
           return {found: false, status: LeaseStatus.UNAVAILABLE};
@@ -53,8 +51,8 @@ export const leaseBlob = async function (
           return {found: true, status: LeaseStatus.UNAVAILABLE};
         default:
           logError('svcs:azure:blob:leaseBlob:unexpectedResponse', {
-            body,
-            response,
+            body: await r.text(),
+            response: r,
           });
       }
     })
@@ -66,9 +64,7 @@ export const releaseBlobLease = async function (
   resource: string,
   leaseId: string
 ) {
-  return request({
-    ...this.optsTemplate,
-    path: `/${this.app}/${resource}?comp=lease`,
+  return fetch(`${this.host}/${this.app}/${resource}?comp=lease`, {
     method: RequestMethods.PUT,
     headers: {
       ...(await this.authHeaders()),
@@ -76,16 +72,16 @@ export const releaseBlobLease = async function (
       'x-ms-lease-id': leaseId,
     },
   })
-    .then(({body, response}) => {
-      switch (response.statusCode) {
+    .then(async r => {
+      switch (r.status) {
         case 200:
-          return response.statusCode;
+          return r.status;
         default:
           logError('svcs:azure:blob:releaseBlobLease:unexpectedResponse', {
-            body,
-            response,
+            body: await r.text(),
+            response: r,
           });
-          return response.statusCode;
+          return r.status;
       }
     })
     .catch(e => logError('svcs:azure:blob:releaseBlobLease:error', e));

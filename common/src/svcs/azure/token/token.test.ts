@@ -1,7 +1,7 @@
 import {AzureBlobClient} from '../../../clients/azure/blob';
 import {logError} from '../../../utils/log/error';
 import {mswServerSetup} from '../../../utils/msw';
-import {errorhandlers2, handlers} from './mocks/handlers';
+import {errorhandlers, handlers} from './mocks/handlers';
 import {authHeaders, refreshToken, setToken} from './token';
 
 jest.mock('../../../utils/log/error');
@@ -22,11 +22,11 @@ describe('refreshToken', () => {
 
     expect(azureBlobClientMock.setToken).toHaveBeenCalledTimes(1);
     expect(azureBlobClientMock.setToken).toHaveBeenCalledWith(
-      '{"access_token": "your-access-token", "expires_in": 3600}'
+      '{"expires_in":3600,"access_token":"your-access-token"}'
     );
   });
   it('should handle error when refreshing token', async () => {
-    mswServer.use(...errorhandlers2({tenantId: MOCK_AZURE_TENANT_ID}));
+    mswServer.use(...errorhandlers({tenantId: MOCK_AZURE_TENANT_ID}));
     const logErrorMock = logError as jest.MockedFunction<typeof logError>;
     await refreshToken.call(azureBlobClientMock as unknown as AzureBlobClient);
 

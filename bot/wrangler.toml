@@ -52,4 +52,3 @@ compatibility_date = "2023-12-18"
 
 # The package "node:https" wasn't found on the file system but is built into node.
 # Add "node_compat = true" to your wrangler.toml file and make sure to prefix the module name with "node:" to enable Node.js compatibility.
-node_compat = true

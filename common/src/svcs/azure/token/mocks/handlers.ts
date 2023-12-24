@@ -1,4 +1,4 @@
-import {HttpResponse, http} from 'msw';
+import {http} from 'msw';
 
 interface AzureMockHandler {
   tenantId: string;
@@ -23,12 +23,5 @@ export const errorhandlers = ({tenantId}: AzureMockHandler) => [
     () => {
       throw Error('Error');
     }
-  ),
-];
-
-export const errorhandlers2 = ({tenantId}: AzureMockHandler) => [
-  http.post(
-    `https://login.microsoftonline.com/${tenantId}/oauth2/v2.0/token`,
-    () => new HttpResponse(null, {status: 500})
   ),
 ];

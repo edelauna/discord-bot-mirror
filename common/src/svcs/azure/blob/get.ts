@@ -1,5 +1,5 @@
 import {AzureBlobClient} from '../../../clients/azure/blob';
-import {RequestMethods, request} from '../../../clients/https/https';
+import {RequestMethods} from '../../../utils/fetch';
 import {logError} from '../../../utils/log/error';
 
 export type AzureBlob = {
@@ -13,22 +13,16 @@ export const getBlob = async function (
   this: AzureBlobClient,
   resource: string
 ): Promise<AzureBlob | void> {
-  return request({
-    ...this.optsTemplate,
-    path: `/${this.app}/${resource}`,
+  return fetch(`${this.host}/${this.app}/${resource}`, {
     method: RequestMethods.GET,
     headers: {
       ...(await this.authHeaders()),
     },
   })
-    .then(({body, response}) => ({
-      body: body || '',
+    .then(async r => ({
+      body: await r.text(),
       headers: {
-        'last-modified': new Date(
-          response.headers?.['last-modified']
-            ? response.headers?.['last-modified']
-            : 0
-        ),
+        'last-modified': new Date(r.headers.get('last-modified') ?? 0),
       },
     }))
     .catch(e => logError('svcs:azure:blob:getBlob:error', e));
