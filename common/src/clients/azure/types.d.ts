@@ -1,4 +1,4 @@
-namespace AzureBlobApi {
+export namespace AzureApi {
   export type TokenResponse = {
     token_type: string;
     expires_in: number;

@@ -1,4 +1,4 @@
-import {AzureBlobClient} from '../../../clients/azure/blob';
+import {AzureBlobClient} from '../../../clients/azure/blob/blob';
 import {RequestMethods} from '../../../utils/fetch';
 import {logError} from '../../../utils/log/error';
 
@@ -20,7 +20,7 @@ export const getBlob = async function (
     },
   })
     .then(async r => ({
-      body: await r.text(),
+      body: r.status === 200 ? await r.text() : '',
       headers: {
         'last-modified': new Date(r.headers.get('last-modified') ?? 0),
       },

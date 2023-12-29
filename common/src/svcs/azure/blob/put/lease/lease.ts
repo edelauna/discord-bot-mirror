@@ -1,4 +1,4 @@
-import {AzureBlobClient} from '../../../../../clients/azure/blob';
+import {AzureBlobClient} from '../../../../../clients/azure/blob/blob';
 import {RequestMethods} from '../../../../../utils/fetch';
 import {logError} from '../../../../../utils/log/error';
 

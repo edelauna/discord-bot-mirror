@@ -1,4 +1,4 @@
-import {AzureBlobClient} from '../../../../../clients/azure/blob';
+import {AzureBlobClient} from '../../../../../clients/azure/blob/blob';
 import {LeaseStatus, leaseBlob, releaseBlobLease} from './lease';
 import {mswServerSetup} from '../../../../../utils/msw';
 import {handlers as authHandlers} from '../../../token/mocks/handlers';
@@ -7,6 +7,7 @@ import {
   leaseErrorHandler,
   leaseFoundHandler,
 } from './mocks/handlers';
+import {Env} from '../../../../../../types/environment';
 
 const MOCK_AZURE_TENANT_ID = 'tenantId';
 const MOCK_AZURE_HOST = 'http://test';
@@ -17,8 +18,9 @@ const mswServer = mswServerSetup(
 
 let azureBlobClient: AzureBlobClient;
 beforeEach(() => {
-  azureBlobClient = new AzureBlobClient(MOCK_APP);
-  azureBlobClient.azureTenantId = MOCK_AZURE_TENANT_ID;
+  azureBlobClient = new AzureBlobClient(MOCK_APP, {
+    AZURE_TENANT_ID: MOCK_AZURE_TENANT_ID,
+  } as Env);
   azureBlobClient.host = MOCK_AZURE_HOST;
 });
 describe('leaseBlob', () => {

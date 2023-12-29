@@ -1,4 +1,5 @@
-import {AzureBlobClient} from '../../../clients/azure/blob';
+import {AzureBlobClient} from '../../../clients/azure/blob/blob';
+import {AzureApi} from '../../../clients/azure/types';
 import {logError} from '../../../utils/log/error';
 import {mswServerSetup} from '../../../utils/msw';
 import {errorhandlers, handlers} from './mocks/handlers';
@@ -8,8 +9,6 @@ jest.mock('../../../utils/log/error');
 
 const MOCK_AZURE_TENANT_ID = 'mock-tenant-id';
 
-const mswServer = mswServerSetup(handlers({tenantId: MOCK_AZURE_TENANT_ID}));
-
 describe('refreshToken', () => {
   const azureBlobClientMock = {
     azureClientId: 'mock-client-id',
@@ -17,6 +16,8 @@ describe('refreshToken', () => {
     azureTenantId: MOCK_AZURE_TENANT_ID,
     setToken: jest.fn(),
   };
+  const mswServer = mswServerSetup(handlers({tenantId: MOCK_AZURE_TENANT_ID}));
+
   it('should refresh token successfully', async () => {
     await refreshToken.call(azureBlobClientMock as unknown as AzureBlobClient);
 
@@ -40,7 +41,7 @@ describe('refreshToken', () => {
 describe('setToken', () => {
   it('should set token correctly', () => {
     const azureBlobClientMock = {
-      token: {} as AzureBlobApi.AccessToken,
+      token: {} as AzureApi.AccessToken,
       logError: jest.fn(),
     };
 

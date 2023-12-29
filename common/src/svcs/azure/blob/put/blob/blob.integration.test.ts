@@ -1,8 +1,9 @@
-import {AzureBlobClient} from '../../../../../clients/azure/blob';
+import {AzureBlobClient} from '../../../../../clients/azure/blob/blob';
 import {putBlob} from './blob';
 import {mswServerSetup} from '../../../../../utils/msw';
 import {handlers as authHandlers} from '../../../token/mocks/handlers';
 import {errorHandler, okHandler} from './mocks/handlers';
+import {Env} from '../../../../../../types/environment';
 
 describe('putBlob', () => {
   let azureBlobClient: AzureBlobClient;
@@ -14,8 +15,9 @@ describe('putBlob', () => {
   );
 
   beforeEach(() => {
-    azureBlobClient = new AzureBlobClient(MOCK_APP);
-    azureBlobClient.azureTenantId = MOCK_AZURE_TENANT_ID;
+    azureBlobClient = new AzureBlobClient(MOCK_APP, {
+      AZURE_TENANT_ID: MOCK_AZURE_TENANT_ID,
+    } as Env);
     azureBlobClient.host = MOCK_AZURE_HOST;
   });
 
