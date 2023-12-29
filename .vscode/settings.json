@@ -1,5 +1,10 @@
 {
   "typescript.format.insertSpaceAfterOpeningAndBeforeClosingNonemptyBraces": false,
   "typescript.format.insertSpaceAfterOpeningAndBeforeClosingEmptyBraces": false,
-  "jest.jestCommandLine": "npm test -o --"
+  "jest.jestCommandLine": "npm test -o --",
+  "jest.rootPath": "./",
+  "jest.autoRun": {
+    "watch": false,
+    "onSave": "test-src-file"
+  }
 }
