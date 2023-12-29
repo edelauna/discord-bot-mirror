@@ -7,8 +7,6 @@ import {putBlob} from '../../../svcs/azure/blob/put/blob/blob';
 import {Env} from '../../../../types/environment';
 import {AzureAuthClient} from '../auth';
 
-export const AZURE_STORAGE_VERIONS = '2023-11-03';
-
 export class AzureBlobClient extends AzureAuthClient {
   host;
   app;

@@ -6,6 +6,8 @@ import {
 } from '../../svcs/azure/token/token';
 import {AzureApi} from './types';
 
+export const AZURE_STORAGE_VERIONS = '2023-11-03';
+
 export class AzureAuthClient {
   azureClientId;
   azureTenantId;

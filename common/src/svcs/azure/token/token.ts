@@ -1,5 +1,7 @@
-import {AzureAuthClient} from '../../../clients/azure/auth';
-import {AZURE_STORAGE_VERIONS} from '../../../clients/azure/blob/blob';
+import {
+  AZURE_STORAGE_VERIONS,
+  AzureAuthClient,
+} from '../../../clients/azure/auth';
 import {AzureApi} from '../../../clients/azure/types';
 import {RequestMethods} from '../../../utils/fetch';
 import {logError} from '../../../utils/log/error';
