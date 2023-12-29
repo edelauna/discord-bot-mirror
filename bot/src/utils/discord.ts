@@ -1,10 +1,8 @@
 import {verifyKey} from 'discord-interactions';
+import {Env} from 'discord-mirror-common/types/environment';
 import {IRequest} from 'itty-router';
 
-export const verifyDiscordRequest = async (
-  request: IRequest,
-  env: NodeJS.ProcessEnv
-) => {
+export const verifyDiscordRequest = async (request: IRequest, env: Env) => {
   const signature = request.headers.get('x-signature-ed25519');
   const timestamp = request.headers.get('x-signature-timestamp');
   const body = await request.text();

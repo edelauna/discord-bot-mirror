@@ -7,7 +7,7 @@ export enum REGISTER_COMMAND_VALUES {
 }
 
 export const CHANNEL_COMMAND: APIApplicationCommandOption = {
-  name: 'discord-mirror',
+  name: 'channel-tracker',
   description:
     'Add/remove this channel for monitoring and copying to discord-mirror',
   type: 1,
@@ -24,4 +24,10 @@ export const CHANNEL_COMMAND: APIApplicationCommandOption = {
       ],
     },
   ],
+};
+
+export const PONG_COMMAND: APIApplicationCommandOption = {
+  name: 'ping',
+  description: 'Acks with pong',
+  type: 1,
 };

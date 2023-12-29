@@ -37,15 +37,14 @@ router.post('/', async (request, env) => {
         return await handler(
           interaction.data.options,
           interaction.channel_id,
-          interaction.guild_id
+          interaction.guild_id,
+          env
         );
       }
       default:
-        return new JsonResponse({error: 'Unknown Type'}, {status: 400});
+        return new JsonResponse({error: 'Unknown Commnad'}, {status: 400});
     }
   }
-
-  console.error('Unknown Type');
   return new JsonResponse({error: 'Unknown Type'}, {status: 400});
 });
 

@@ -1,4 +1,4 @@
-import {CHANNEL_COMMAND} from '../src/config/commands';
+import {CHANNEL_COMMAND, PONG_COMMAND} from '../src/config/commands';
 
 const token = process.env.DISCORD_TOKEN;
 const applicationId = process.env.DISCORD_APPLICATION_ID;
@@ -26,7 +26,7 @@ const registerCommands = async () => {
       Authorization: `Bot ${token}`,
     },
     method: 'PUT',
-    body: JSON.stringify([CHANNEL_COMMAND]),
+    body: JSON.stringify([CHANNEL_COMMAND, PONG_COMMAND]),
   });
 
   if (response.ok) {

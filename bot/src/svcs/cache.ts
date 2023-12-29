@@ -1,6 +1,8 @@
 import {logError} from 'discord-mirror-common/src/utils/log/error';
-import {azureBlobClient} from '../clients/azure';
+import {initAzureBlobClient} from '../clients/azure';
 import {Snowflake} from 'discord-api-types/globals';
+import {Env} from 'discord-mirror-common/types/environment';
+import {AzureBlobClient} from 'discord-mirror-common/src/clients/azure/blob/blob';
 
 export interface BotCacheArgs {
   channelId: Snowflake;
@@ -10,12 +12,16 @@ export interface BotCacheArgs {
 export class Cache {
   private _remoteCache: {[key: string]: {[key: string]: number}} = {};
   private _leaseMap: {[key: string]: string} = {};
+  private _azureBlobClient: AzureBlobClient;
+  constructor(env: Env) {
+    this._azureBlobClient = initAzureBlobClient(env);
+  }
   private _getCache(guildId: Snowflake) {
-    return azureBlobClient.getBlob(guildId).then(c => {
+    return this._azureBlobClient.getBlob(guildId).then(c => {
       if (!c) return;
       const {body} = c;
       try {
-        if (body) this._remoteCache[guildId] = JSON.parse(body);
+        this._remoteCache[guildId] = body ? JSON.parse(body) : {};
       } catch (e) {
         logError('svcs:cache:_getCache:error', e);
       }
@@ -37,19 +43,23 @@ export class Cache {
    * will use this to rate limit incoming requests
    */
   async acquireLease(guildId: Snowflake) {
-    const {leaseId} = (await azureBlobClient.leaseBlob(guildId)) || {};
-    if (!leaseId) return false;
-    this._leaseMap[guildId] = leaseId;
+    const {leaseId, found} =
+      (await this._azureBlobClient.leaseBlob(guildId)) || {};
+    if (found && !leaseId) return false;
+    this._leaseMap[guildId] = found ? leaseId! : '';
     return true;
   }
   private async _put(guildId: Snowflake) {
-    return await azureBlobClient.putBlob(
+    await this._azureBlobClient.putBlob(
       guildId,
-      JSON.stringify(this._remoteCache[guildId])
+      JSON.stringify(this._remoteCache[guildId]),
+      this._leaseMap[guildId] ? this._leaseMap[guildId] : undefined
     );
+    if (this._leaseMap[guildId]) this._releaseBlobLease(guildId);
+    delete this._leaseMap[guildId];
   }
   private async _releaseBlobLease(guildId: Snowflake) {
-    return azureBlobClient
+    return this._azureBlobClient
       .releaseBlobLease(guildId, this._leaseMap[guildId])
       .then(statuCode => {
         if (statuCode !== 200)
@@ -58,23 +68,11 @@ export class Cache {
       .catch(e => logError('svcs:cache:put:releaseBlobLease:error', e));
   }
   async put({channelId, guildId}: BotCacheArgs): Promise<void> {
-    if (!this._leaseMap[guildId])
-      throw new Error(
-        'Missing leaseId - ensure ::acquireLease has been called'
-      );
     this._remoteCache[guildId][channelId] = 1;
-    this._put(guildId);
-    this._releaseBlobLease(guildId);
-    this._leaseMap[guildId] = '';
+    await this._put(guildId);
   }
   async remove({channelId, guildId}: BotCacheArgs): Promise<void> {
-    if (!this._leaseMap[guildId])
-      throw new Error(
-        'Missing leaseId - ensure ::acquireLease has been called'
-      );
     delete this._remoteCache[guildId][channelId];
-    this._put(guildId);
-    this._releaseBlobLease(guildId);
-    this._leaseMap[guildId] = '';
+    await this._put(guildId);
   }
 }

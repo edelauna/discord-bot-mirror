@@ -5,8 +5,10 @@ describe('Worker', () => {
   let worker: UnstableDevWorker;
 
   beforeAll(async () => {
-    worker = await unstable_dev('src/index.ts', {
+    worker = await unstable_dev(__dirname + '/app.ts', {
       experimental: {disableExperimentalWarning: true},
+      env: 'test',
+      config: __dirname + '/../wrangler.toml',
     });
   });
 
@@ -14,9 +16,13 @@ describe('Worker', () => {
     await worker.stop();
   });
 
-  it('should return Hello World', async () => {
+  it('should return 👋', async () => {
     const resp = await worker.fetch();
     const text = await resp.text();
-    expect(text).toMatchInlineSnapshot('"Hello World!"');
+    /**
+     * just matching the starting emoji since the `env` and `config` options
+     * seem to get overwritten by dev variables locally
+     */
+    expect(text).toMatch(/^👋/);
   });
 });

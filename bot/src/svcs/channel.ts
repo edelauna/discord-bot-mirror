@@ -1,21 +1,38 @@
-import {getQueueClient} from '../clients/azure';
-import {cacheSvc} from '../config/cache';
-import {BotCacheArgs} from './cache';
+import {Env} from 'discord-mirror-common/types/environment';
+import {initAzureQueueClient} from '../clients/azure';
+import {BotCacheArgs, Cache} from './cache';
 
-const ADD_QUEUE = 'add' + process.env.AZURE_STORAGE_QUEUE_SUFFIX;
-const REMOVE_QUEUE = 'remove' + process.env.AZURE_STORAGE_QUEUE_SUFFIX;
+export const ADD_QUEUE = 'add-channel-queue';
+export const REMOVE_QUEUE = 'remove-channel-queue';
 
-export const addChannel = async ({channelId, guildId}: BotCacheArgs) => {
-  if (await cacheSvc.get({channelId, guildId})) return false;
-  if (!(await cacheSvc.acquireLease(guildId))) return false;
-  await getQueueClient(ADD_QUEUE).sendMessage(channelId);
-  await cacheSvc.put({channelId, guildId});
-  return true;
-};
-
-export const removeChannel = async ({channelId, guildId}: BotCacheArgs) => {
-  if (!(await cacheSvc.acquireLease(guildId))) return false;
-  await getQueueClient(REMOVE_QUEUE).sendMessage(channelId);
-  await cacheSvc.remove({channelId, guildId});
-  return true;
-};
+export enum CHANNEL_STATUS {
+  REGISTERED = 'registered',
+  UNREGISTERED = 'unregistered',
+}
+export class ChannelSvc {
+  azureQueueClient;
+  cacheSvc;
+  constructor(env: Env, cacheSvc: Cache) {
+    this.azureQueueClient = initAzureQueueClient(env);
+    this.cacheSvc = cacheSvc;
+  }
+  async addChannel({channelId, guildId}: BotCacheArgs) {
+    if (await this.cacheSvc.get({channelId, guildId})) return false;
+    if (!(await this.cacheSvc.acquireLease(guildId))) return false;
+    await this.azureQueueClient.putMessage(ADD_QUEUE, channelId);
+    await this.cacheSvc.put({channelId, guildId});
+    return true;
+  }
+  async removeChannel({channelId, guildId}: BotCacheArgs) {
+    if (!(await this.cacheSvc.get({channelId, guildId}))) return false;
+    if (!(await this.cacheSvc.acquireLease(guildId))) return false;
+    await this.azureQueueClient.putMessage(REMOVE_QUEUE, channelId);
+    await this.cacheSvc.remove({channelId, guildId});
+    return true;
+  }
+  async channelStatus({channelId, guildId}: BotCacheArgs) {
+    return (await this.cacheSvc.get({channelId, guildId}))
+      ? CHANNEL_STATUS.REGISTERED
+      : CHANNEL_STATUS.UNREGISTERED;
+  }
+}

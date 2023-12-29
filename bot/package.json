@@ -15,7 +15,7 @@
     "pretest": "npm run compile",
     "posttest": "npm run lint",
     "publish": "wrangler deploy",
-    "register": "ts-node bin/deploy-commands.ts"
+    "register": "tsx bin/deploy-commands.ts"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20231218.0",
